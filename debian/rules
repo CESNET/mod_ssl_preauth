@@ -1,0 +1,79 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+#
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+#
+# Modified to make a template file for a multi-binary package with separated
+# build-arch and build-indep targets  by Bill Allombert 2001
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+CFLAGS = -Wall -g
+
+build: build-stamp
+
+build-stamp:
+	dh_testdir
+
+	touch $@
+
+build-module:
+	dh_testdir
+	$(MAKE) APXS=/usr/bin/apxs2
+
+install-module: build-module
+	mkdir -p $(CURDIR)/debian/libapache2-mod-ssl-preauth/usr/lib/apache2/modules/ \
+                $(CURDIR)/debian/libapache2-mod-ssl-preauth/etc/apache2/mods-available
+	install $(CURDIR)/.libs/mod_ssl_preauth.so $(CURDIR)/debian/libapache2-mod-ssl-preauth/usr/lib/apache2/modules/mod_ssl_preauth.so
+	install -m644 $(CURDIR)/debian/ssl_preauth.load $(CURDIR)/debian/libapache2-mod-ssl-preauth/etc/apache2/mods-available
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+
+	# Add here commands to clean up after the build process.
+	$(MAKE) clean
+
+	rm -f debian/files
+	dh_clean -k
+
+install: install-stamp
+install-stamp:
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+# Build architecture-independent files here.
+binary-indep: 
+# We have nothing to do by default.
+
+binary-arch: build install-module
+	dh_testdir -a 
+	dh_testroot -a
+	dh_installchangelogs
+	dh_installdocs
+	dh_installexamples
+	dh_installman
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+#	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+
+binary: binary-arch binary-indep
+.PHONY: build build-stamp build-module install-module install-stamp clean binary-indep binary-arch binary

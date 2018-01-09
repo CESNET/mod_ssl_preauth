@@ -1,0 +1,11 @@
+libapache2-mod-ssl-preauth (1.0) stable; urgency=low
+
+  * Build with deb8
+
+ -- Daniel Kouril <kouril@ics.muni.cz>  Fri, 15 Jan 2016 16:23:22 +0200
+
+libapache2-mod-ssl-preauth (0.1) stable; urgency=low
+
+  * Initial Release.
+
+ -- Daniel Kouril <kouril@ics.muni.cz>  Fri, 20 Aug 2010 12:18:33 +0100

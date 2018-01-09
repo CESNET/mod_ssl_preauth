@@ -1,0 +1,12 @@
+Source: libapache2-mod-ssl-preauth
+Section: net
+Priority: optional
+Maintainer: Daniel Kouril <kouril@ics.muni.cz>
+Build-Depends: debhelper (>= 7), apache2-dev
+Standards-Version: 3.8.3
+
+Package: libapache2-mod-ssl-preauth
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: SSL Preauthentication
+ An Apache module to detect that SSL client authentication has been performed.
