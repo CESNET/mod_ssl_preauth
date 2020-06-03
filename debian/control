@@ -7,6 +7,6 @@ Standards-Version: 3.8.3
 
 Package: libapache2-mod-ssl-preauth
 Architecture: any
-Depends: apache2-bin
+Depends: apache2-bin, ${shlibs:Depends}
 Description: SSL Preauthentication
  An Apache module to detect that SSL client authentication has been performed.
