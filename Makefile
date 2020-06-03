@@ -15,6 +15,7 @@ install: mod_ssl_preauth.la
 
 clean:
 	$(RM) *.o *.so *.a *.la *.lo *.slo
+	$(RM) -rf build-stamp debian/files debian/.debhelper/ debian/libapache2-mod-ssl-preauth*
 	$(RM) -rf .libs
 
 debs:
