@@ -200,6 +200,22 @@ register_hooks(apr_pool_t *p)
     ap_hook_optional_fn_retrieve(ssl_preauth_fn_retrieve, NULL, NULL, APR_HOOK_MIDDLE);
 }
 
+static const command_rec ssl_preauth_cmds[] = {
+    command("SSLPreauth", ap_set_flag_slot, ssl_preauth_enabled,
+	    FLAG, "Check whether user presented a valid client certificate."),
+
+    command("SSLPreauthLDAPURL", ssl_preauth_ldap_parse_url, ldap_url,
+	    TAKE12, "URL defining an LDAP connection. The syntax follows roughly the one specified by mod_authnz_ldap."
+		    " Also serves as the trigger for the LDAP lookup."),
+
+    command("SSLPreauthLDAPRemoteUserAttribute", ap_set_string_slot, ldap_remote_user_attr,
+	    TAKE1, "Override the user supplied username and place the "
+                   "contents of this attribute in the REMOTE_USER "
+                   "environment variable."),
+
+    { NULL }
+};
+
 module AP_MODULE_DECLARE_DATA ssl_preauth_module = {
     STANDARD20_MODULE_STUFF,
     create_dir_config,
