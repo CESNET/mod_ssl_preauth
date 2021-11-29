@@ -23,6 +23,8 @@ typedef struct {
     char *ldap_url;
     char *ldap_host;
     int port;
+    char *binddn;
+    char *bindpw;
     char *basedn;
     char *attribute;
     char **attributes;
