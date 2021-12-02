@@ -23,6 +23,8 @@ typedef struct {
     char *ldap_url;
     char *ldap_host;
     int port;
+    char *binddn;
+    char *bindpw;
     char *basedn;
     char *attribute;
     char **attributes;
@@ -48,21 +50,5 @@ ssl_preauth_ldap_build_filter(char *filtbuf,
     AP_INIT_ ## type (name, (void*) func,		\
 	(void*)APR_OFFSETOF(ssl_preauth_config, var),	\
 	OR_AUTHCFG | RSRC_CONF, usage)
-
-static const command_rec ssl_preauth_cmds[] = {
-    command("SSLPreauth", ap_set_flag_slot, ssl_preauth_enabled,
-	    FLAG, "Check whether user presented a valid client certificate."),
-
-    command("SSLPreauthLDAPURL", ssl_preauth_ldap_parse_url, ldap_url,
-	    TAKE12, "URL defining an LDAP connection. The syntax follows roughly the one specified by mod_authnz_ldap." 
-		    " Also serves as the trigger for the LDAP lookup."),
-
-    command("SSLPreauthLDAPRemoteUserAttribute", ap_set_string_slot, ldap_remote_user_attr,
-	    TAKE1, "Override the user supplied username and place the "
-                   "contents of this attribute in the REMOTE_USER "
-                   "environment variable."),
-
-    { NULL }
-};
 
 #endif

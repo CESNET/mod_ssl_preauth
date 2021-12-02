@@ -70,7 +70,7 @@ lookup_ldap_user(request_rec *r, const char * ssl_client_dn, char **user)
     }
 
     ldc = util_ldap_connection_find(r, conf->ldap_host, conf->port,
-				    NULL, NULL, always,
+				    conf->binddn, conf->bindpw, always,
 				    conf->secure);
     if (ldc == NULL) {
 	log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
@@ -199,6 +199,71 @@ register_hooks(apr_pool_t *p)
     ap_hook_post_config(ssl_preauth_post_config,NULL,NULL,APR_HOOK_MIDDLE);
     ap_hook_optional_fn_retrieve(ssl_preauth_fn_retrieve, NULL, NULL, APR_HOOK_MIDDLE);
 }
+
+/* verbatim copy of mod_authnz_ldap.c */
+static const char *ssl_preauth_set_bind_password(cmd_parms *cmd, void *_cfg,
+                                                 const char *arg)
+{
+    ssl_preauth_config *sec = _cfg;
+    int arglen = strlen(arg);
+    char **argv;
+    char *result;
+
+    if ((arglen > 5) && strncmp(arg, "exec:", 5) == 0) {
+        if (apr_tokenize_to_argv(arg+5, &argv, cmd->temp_pool) != APR_SUCCESS) {
+            return apr_pstrcat(cmd->pool,
+                               "Unable to parse exec arguments from ",
+                               arg+5, NULL);
+        }
+        argv[0] = ap_server_root_relative(cmd->temp_pool, argv[0]);
+
+        if (!argv[0]) {
+            return apr_pstrcat(cmd->pool,
+                               "Invalid SSLPreauthLDAPBindPassword exec location:",
+                               arg+5, NULL);
+        }
+        result = ap_get_exec_line(cmd->pool,
+                                  (const char*)argv[0], (const char * const *)argv);
+
+        if (!result) {
+            return apr_pstrcat(cmd->pool,
+                               "Unable to get bind password from exec of ",
+                               arg+5, NULL);
+        }
+        sec->bindpw = result;
+    }
+    else {
+        sec->bindpw = (char *)arg;
+    }
+
+    if (!(*sec->bindpw)) {
+        return "Empty passwords are invalid for SSLPreauthLDAPBindPassword";
+    }
+
+    return NULL;
+}
+
+static const command_rec ssl_preauth_cmds[] = {
+    command("SSLPreauth", ap_set_flag_slot, ssl_preauth_enabled,
+	    FLAG, "Check whether user presented a valid client certificate."),
+
+    command("SSLPreauthLDAPURL", ssl_preauth_ldap_parse_url, ldap_url,
+	    TAKE12, "URL defining an LDAP connection. The syntax follows roughly the one specified by mod_authnz_ldap."
+		    " Also serves as the trigger for the LDAP lookup."),
+
+    command("SSLPreauthLDAPRemoteUserAttribute", ap_set_string_slot, ldap_remote_user_attr,
+	    TAKE1, "Override the user supplied username and place the "
+                   "contents of this attribute in the REMOTE_USER "
+                   "environment variable."),
+
+    command("SSLPreauthLDAPBindDN", ap_set_string_slot, binddn,
+	    TAKE1, "DN to use to bind to LDAP server. If not provided, will do an anonymous bind."),
+
+    command("SSLPreauthLDAPBindPassword", ssl_preauth_set_bind_password, bindpw,
+	    TAKE1, "Password to use to bind to LDAP server. If not provided, will do an anonymous bind."),
+
+    { NULL }
+};
 
 module AP_MODULE_DECLARE_DATA ssl_preauth_module = {
     STANDARD20_MODULE_STUFF,
